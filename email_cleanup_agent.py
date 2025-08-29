@@ -11,15 +11,36 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import time
 import os
-import sys
 
-# Add the parent directory to path for bot_config
-sys.path.append(os.path.expanduser("~"))
-from bot_config import BotConfig
+# Configuration class built into the app
+class BotConfig:
+    # API Keys from Streamlit secrets or environment variables
+    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+    GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
+    ELEVENLABS_API_KEY = st.secrets.get("ELEVENLABS_API_KEY", os.getenv("ELEVENLABS_API_KEY"))
+    SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", os.getenv("SERPAPI_KEY"))
+    
+    # Default model settings
+    DEFAULT_MODEL = "gpt-4o-mini"
+    DEFAULT_TEMPERATURE = 0.7
+    
+    @classmethod
+    def validate_keys(cls):
+        """Check if essential API keys are set"""
+        missing = []
+        if not cls.OPENAI_API_KEY:
+            missing.append("OPENAI_API_KEY")
+        
+        if missing:
+            st.warning(f"Missing API keys: {', '.join(missing)}")
+            st.info("Add them in Streamlit Cloud settings under 'Secrets' to enable full functionality")
+            return False
+        else:
+            return True
 
 # Page configuration
 st.set_page_config(
-    page_title="Email Cleanup Agent",
+    page_title="Smart Email Cleaner",
     page_icon="📧",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -132,17 +153,25 @@ def main_dashboard():
     """Main dashboard interface"""
     
     # Header
-    st.markdown('<h1 class="main-header">Email Cleanup Agent</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">📧 Smart Email Cleaner</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2rem; color: #6c757d; margin-bottom: 3rem;">Transform your chaotic inbox into an organized paradise</p>', unsafe_allow_html=True)
+    
+    # API Key Status
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if BotConfig.validate_keys():
+            st.success("✅ AI features are enabled!")
+        else:
+            st.info("ℹ️ Add API keys in Streamlit settings to enable AI features")
     
     # Connection Status
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.session_state.get('connected', False):
-            st.success("Connected to your email account")
+            st.success("✅ Connected to your email account")
         else:
-            st.warning("Not connected to email account")
-            if st.button("Connect Email Account", key="connect_btn"):
+            st.warning("⚠️ Not connected to email account")
+            if st.button("🔗 Connect Email Account", key="connect_btn"):
                 st.session_state.connected = True
                 st.rerun()
     
@@ -190,7 +219,7 @@ def main_dashboard():
             """, unsafe_allow_html=True)
         
         # Progress charts
-        st.markdown("### Cleanup Progress")
+        st.markdown("### 📊 Cleanup Progress")
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -208,7 +237,7 @@ def main_dashboard():
 def cleanup_features():
     """Email cleanup features interface"""
     
-    st.markdown("### Cleanup Features")
+    st.markdown("### 🛠️ Cleanup Features")
     
     # Feature cards
     col1, col2 = st.columns(2)
@@ -226,13 +255,13 @@ def cleanup_features():
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Start Spam Cleanup", key="spam_cleanup"):
+        if st.button("🚀 Start Spam Cleanup", key="spam_cleanup"):
             with st.spinner("Cleaning spam emails..."):
                 progress_bar = st.progress(0)
                 for i in range(100):
                     time.sleep(0.02)
                     progress_bar.progress(i + 1)
-            st.success("Removed 127 spam emails!")
+            st.success("✅ Removed 127 spam emails!")
     
     with col2:
         st.markdown("""
@@ -247,13 +276,13 @@ def cleanup_features():
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Organize Inbox", key="organize"):
+        if st.button("📂 Organize Inbox", key="organize"):
             with st.spinner("Organizing emails..."):
                 progress_bar = st.progress(0)
                 for i in range(100):
                     time.sleep(0.03)
                     progress_bar.progress(i + 1)
-            st.success("Organized 234 emails into folders!")
+            st.success("✅ Organized 234 emails into folders!")
     
     # More features
     col3, col4 = st.columns(2)
@@ -266,7 +295,7 @@ def cleanup_features():
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Bulk Unsubscribe", key="unsubscribe"):
+        if st.button("🔄 Bulk Unsubscribe", key="unsubscribe"):
             st.info("Found 23 newsletters to unsubscribe from")
     
     with col4:
@@ -277,13 +306,13 @@ def cleanup_features():
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("View Analytics", key="analytics"):
+        if st.button("📊 View Analytics", key="analytics"):
             st.info("Analytics dashboard coming up!")
 
 def email_analytics():
     """Email analytics and insights"""
     
-    st.markdown("### Email Analytics")
+    st.markdown("### 📈 Email Analytics")
     
     # Sample data for demonstration
     dates = pd.date_range(start='2024-01-01', end='2024-08-29', freq='D')
@@ -332,32 +361,32 @@ def sidebar_menu():
     """Sidebar navigation and settings"""
     
     with st.sidebar:
-        st.markdown("### Control Panel")
+        st.markdown("### 🎛️ Control Panel")
         
         # Navigation
         page = st.selectbox(
             "Choose View",
-            ["Dashboard", "Cleanup Tools", "Analytics", "Settings"]
+            ["📊 Dashboard", "🛠️ Cleanup Tools", "📈 Analytics", "⚙️ Settings"]
         )
         
         st.markdown("---")
         
         # Quick actions
-        st.markdown("### Quick Actions")
+        st.markdown("### ⚡ Quick Actions")
         
-        if st.button("Scan Inbox", key="scan"):
+        if st.button("🔍 Scan Inbox", key="scan"):
             st.success("Inbox scanned successfully!")
         
-        if st.button("Refresh Data", key="refresh"):
+        if st.button("🔄 Refresh Data", key="refresh"):
             st.success("Data refreshed!")
         
-        if st.button("Backup Important", key="backup"):
+        if st.button("💾 Backup Important", key="backup"):
             st.success("Important emails backed up!")
         
         st.markdown("---")
         
         # Settings
-        st.markdown("### Settings")
+        st.markdown("### ⚙️ Settings")
         
         auto_cleanup = st.checkbox("Auto Cleanup", value=True)
         safe_mode = st.checkbox("Safe Mode", value=True)
@@ -366,10 +395,10 @@ def sidebar_menu():
         st.markdown("---")
         
         # Status
-        st.markdown("### Status")
-        st.success("System Online")
-        st.info(f"Secure Connection")
-        st.info(f"{st.session_state.get('emails_processed', 1247)} Emails Processed")
+        st.markdown("### 📡 Status")
+        st.success("✅ System Online")
+        st.info(f"🔒 Secure Connection")
+        st.info(f"⚡ {st.session_state.get('emails_processed', 1247)} Emails Processed")
         
         return page
 
@@ -394,7 +423,7 @@ def main():
         email_analytics()
         
     elif "Settings" in current_page:
-        st.markdown("### Settings")
+        st.markdown("### ⚙️ Settings")
         st.markdown("Email cleanup preferences and configuration options")
         
         # Email provider selection
@@ -413,7 +442,7 @@ def main():
             smart_filters = st.checkbox("Smart filters", value=True)
         
         # Save settings
-        if st.button("Save Settings"):
+        if st.button("💾 Save Settings"):
             st.success("Settings saved successfully!")
 
 if __name__ == "__main__":
